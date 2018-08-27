@@ -1,6 +1,6 @@
-const constants = require('./util/constants')
+const constants = require('./util/constants');
 // const getDxContracts = require('../src/helpers/getDxContracts')
-const getDaoStackContracts = require('./util/getDaoStackContracts')
+const getDaoStackContracts = require('./util/getDaoStackContracts');
 
 module.exports = async ({
   provider,
@@ -12,41 +12,47 @@ module.exports = async ({
     Avatar,
     DAOToken,
     Reputation,
-    ExternalLocking4Reputation
+    ExternalLocking4Reputation,
+    ZeroXDutchXValidateAndCall
   } = await getDaoStackContracts({
     provider,
     defaults: transactionDefaults
-  })
+  });
 
-  let daoCreator
+  let daoCreator;
   const daoCreatorGetter = async () => {
     if (!daoCreator) {
       const controllerCreator = await ControllerCreator.new({
-        gas: constants.ARC_GAS_LIMIT
-      })
+        gas: constants.ARC_GAS_LIMIT,
+        from: web3.eth.accounts[0]
+      });
       daoCreator = await DaoCreator.new(
         controllerCreator.address, {
-        gas: constants.ARC_GAS_LIMIT
-      })
+          gas: constants.ARC_GAS_LIMIT,
+          from: web3.eth.accounts[0]
+        });
     }
-
-    return daoCreator
-  }
+    return daoCreator;
+  };
 
   const forgeOrganization = require('./forgeOrganization')({
     daoCreatorGetter,
     Avatar,
     DAOToken,
     Reputation
-  })
+  });
 
   const setSchemes = require('./setSchemes')({
     daoCreatorGetter
-  })
+  });
 
   const createSchemeExternalLocking4Reputation = require('./schemes/createExternalLocking4Reputation')({
     ExternalLocking4Reputation
-  })
+  });
+
+  const createSchemeZeroXDutchXValidateAndCall = require('./schemes/createZeroXDutchXValidateAndCall')({
+    ZeroXDutchXValidateAndCall
+  });
 
   // Repo API
   return {
@@ -54,6 +60,7 @@ module.exports = async ({
     setSchemes,
 
     // Scheme creation
-    createSchemeExternalLocking4Reputation
-  }   
-}
+    createSchemeExternalLocking4Reputation,
+    createSchemeZeroXDutchXValidateAndCall
+  };
+};
